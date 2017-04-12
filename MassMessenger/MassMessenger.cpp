@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "MassMessenger.h"
 
-INPUT ip;
+INPUT input;
 
 vector<string> readFile() 
 {
@@ -23,14 +23,14 @@ vector<string> readFile()
 
 	while (inFile >> c) 
 	{
-		if (c != ',')
-		{
-			link += c;
-		} 
-		else 
+		if (c == ',') //Adds link when it reaches a comma
 		{
 			links.push_back(link);
 			link = "";
+		} 
+		else if (c != ' ') //Skips spaces
+		{
+			link += c;
 		}
 	}
 	links.push_back(link);
@@ -41,32 +41,18 @@ vector<string> readFile()
 
 void simulateKey(vector<int> keyCodes) 
 {
-	if (keyCodes.size() == 1)
+	for (auto i = keyCodes.begin(); i != keyCodes.end(); i++) 
 	{
-		ip.ki.wVk = keyCodes[0]; // virtual-key code
-		ip.ki.dwFlags = 0; // 0 for key press
-		SendInput(1, &ip, sizeof(INPUT));
-
-		ip.ki.dwFlags = KEYEVENTF_KEYUP; // KEYEVENTF_KEYUP for key release
-		SendInput(1, &ip, sizeof(INPUT));
+		input.ki.wVk = *i; // virtual-key code
+		input.ki.dwFlags = 0; // 0 for key press
+		SendInput(1, &input, sizeof(INPUT));
 	}
-	else 
+
+	for (auto i = keyCodes.begin(); i != keyCodes.end(); i++) 
 	{
-		ip.ki.wVk = keyCodes[0]; //Shift key
-		ip.ki.dwFlags = 0;
-		SendInput(1, &ip, sizeof(INPUT));
-
-		ip.ki.wVk = keyCodes[1];
-		ip.ki.dwFlags = 0;
-		SendInput(1, &ip, sizeof(INPUT));
-
-		ip.ki.wVk = keyCodes[0];
-		ip.ki.dwFlags = KEYEVENTF_KEYUP; //Release shift
-		SendInput(1, &ip, sizeof(INPUT));
-
-		ip.ki.wVk = keyCodes[1];
-		ip.ki.dwFlags = KEYEVENTF_KEYUP;
-		SendInput(1, &ip, sizeof(INPUT));
+		input.ki.wVk = *i;
+		input.ki.dwFlags = KEYEVENTF_KEYUP; //Release key
+		SendInput(1, &input, sizeof(INPUT));
 	}
 }
 
@@ -255,20 +241,88 @@ vector<int> decodeChar(char c)
 	case 'z':
 		codes.push_back(0x5A);
 		break;
-	case ' ':
-		codes.push_back(0x20);
+	case '0':
+		codes.push_back(0x30);
 		break;
-	case '.':
-		codes.push_back(0xBE);
+	case '1':
+		codes.push_back(0x31);
+		break;
+	case '2':
+		codes.push_back(0x32);
+		break;
+	case '3':
+		codes.push_back(0x33);
+		break;
+	case '4':
+		codes.push_back(0x34);
+		break;
+	case '5':
+		codes.push_back(0x35);
+		break;
+	case '6':
+		codes.push_back(0x36);
+		break;
+	case '7':
+		codes.push_back(0x37);
+		break;
+	case '8':
+		codes.push_back(0x38);
+		break;
+	case '9':
+		codes.push_back(0x39);
+		break;
+	case ')':
+		codes.push_back(0xA0);
+		codes.push_back(0x30);
 		break;
 	case '!':
 		codes.push_back(0xA0);
 		codes.push_back(0x31);
 		break;
+	case '@':
+		codes.push_back(0xA0);
+		codes.push_back(0x32);
+		break;
+	case '#':
+		codes.push_back(0xA0);
+		codes.push_back(0x33);
+		break;
+	case '$':
+		codes.push_back(0xA0);
+		codes.push_back(0x34);
+		break;
+	case '%':
+		codes.push_back(0xA0);
+		codes.push_back(0x35);
+		break;
+	case '^':
+		codes.push_back(0xA0);
+		codes.push_back(0x36);
+		break;
+	case '&':
+		codes.push_back(0xA0);
+		codes.push_back(0x37);
+		break;
+	case '*':
+		codes.push_back(0xA0);
+		codes.push_back(0x38);
+		break;
+	case '(':
+		codes.push_back(0xA0);
+		codes.push_back(0x39);
+		break;
+	case '.':
+		codes.push_back(0xBE);
+		break;
 	case '?':
 		codes.push_back(0xA0);
 		codes.push_back(0xBF);
 		break;
+	case ' ':
+		codes.push_back(0x20);
+		break;
+	default:
+		codes.push_back(0x20); //Return a space for unknown characters
 	}
 
 	return codes;
@@ -289,10 +343,14 @@ int main(int argc, char *argv[])
 	}
 
 	// Set up a generic keyboard event.
-	ip.type = INPUT_KEYBOARD;
-	ip.ki.wScan = 0; // hardware scan code for key
-	ip.ki.time = 0;
-	ip.ki.dwExtraInfo = 0;
+	input.type = INPUT_KEYBOARD;
+	input.ki.wScan = 0; // hardware scan code for key
+	input.ki.time = 0;
+	input.ki.dwExtraInfo = 0;
+
+	//Need this for pressing enter
+	vector<int> enterKey;
+	enterKey.push_back(0x0D);
 
 	for (auto i = links.begin(); i != links.end(); i++) {
 		system(string("start " + *i).c_str());
@@ -305,12 +363,12 @@ int main(int argc, char *argv[])
 			simulateKey(decodeChar(message[i]));
 		}
 
-		Sleep(500); // Pause for 0.5 seconds while typing finishes.
+		Sleep(750); // Pause for 0.75 seconds while typing finishes.
 
-		//simulateKey(0x0D); //ENTER key
+		simulateKey(enterKey); //Sends the message
 	}
 
-	cout << "Press enter to exit...";
+	cout << "Press enter to exit..." << endl;
 	cin.get();
 
     return 0;

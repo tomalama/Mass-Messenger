@@ -1,4 +1,0 @@
-﻿  MassMessenger.cpp
-c:\dev\massmessenger\massmessenger\massmessenger.cpp(303): warning C4018: '<': signed/unsigned mismatch
-  MassMessenger.vcxproj -> C:\dev\MassMessenger\Debug\MassMessenger.exe
-  MassMessenger.vcxproj -> C:\dev\MassMessenger\Debug\MassMessenger.pdb (Full PDB)
